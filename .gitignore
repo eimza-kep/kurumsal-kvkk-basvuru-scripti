@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite3
+kvkk_submissions.json
+.DS_Store
+Thumbs.db

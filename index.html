@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6698 KVKK İlgili Kişi Başvuru Formu | Kurumsal Başvuru Portalı</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-hover: #1d4ed8;
+            --secondary: #0f172a;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #15803d;
+            --warning: #b45309;
+            --danger: #b91c1c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; padding: 32px 16px; min-height: 100vh; }
+
+        .container { max-width: 860px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            text-align: center; margin-bottom: 28px; background: white; padding: 28px;
+            border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .header-badge {
+            display: inline-block; background: #dbeafe; color: var(--primary);
+            font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
+        }
+        .header h1 { font-size: 1.55rem; color: var(--secondary); margin-bottom: 8px; font-weight: 800; }
+        .header p { font-size: 0.9rem; color: var(--text-muted); max-width: 680px; margin: 0 auto; }
+
+        /* Card & Sections */
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 28px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .section-title {
+            font-size: 1.1rem; font-weight: 700; color: var(--secondary); margin-bottom: 18px;
+            display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;
+        }
+
+        /* Form Grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full-width { grid-column: span 2; }
+        label { font-size: 0.83rem; font-weight: 600; color: #334155; }
+        label span.required { color: var(--danger); margin-left: 2px; }
+
+        input, select, textarea {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.9rem; color: var(--text-main); background: #f8fafc; outline: none; transition: all 0.2s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
+        textarea { min-height: 100px; resize: vertical; }
+
+        /* Rights Checkboxes */
+        .rights-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .right-item {
+            display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s;
+        }
+        .right-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .right-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; cursor: pointer; }
+        .right-item label { font-size: 0.85rem; font-weight: 500; cursor: pointer; line-height: 1.4; color: #1e293b; }
+
+        /* Legal Notice Box */
+        .legal-notice {
+            background: #eff6ff; border-left: 4px solid var(--primary); padding: 14px 18px;
+            border-radius: 0 8px 8px 0; font-size: 0.84rem; color: #1e40af; margin-bottom: 20px; line-height: 1.45;
+        }
+
+        /* Buttons */
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; padding: 14px; border: none;
+            border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        /* Success View */
+        .success-box {
+            display: none; background: white; border: 2px solid #86efac; border-radius: 12px;
+            padding: 36px 24px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+        }
+        .success-icon { font-size: 3rem; margin-bottom: 12px; }
+        .tracking-badge {
+            display: inline-block; background: #ecfdf5; border: 2px dashed #10b981; color: #065f46;
+            font-size: 1.3rem; font-weight: 800; padding: 8px 24px; border-radius: 8px; margin: 16px 0; letter-spacing: 0.05em;
+        }
+        .countdown-badge {
+            background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; margin: 12px auto; display: inline-block;
+        }
+
+        .action-btns { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+        .btn-action {
+            padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem;
+            cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-print { background: var(--secondary); color: white; border: none; }
+        .btn-new { background: #e2e8f0; color: #334155; border: none; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="header-badge">6698 SAYILI KANUN KAPSAMINDA</div>
+        <h1>Veri Sahibi (İlgili Kişi) Başvuru Formu</h1>
+        <p>
+            6698 sayılı Kişisel Verilerin Korunması Kanunu'nun 11. ve 13. maddeleri uyarınca, veri sorumlusu sıfatıyla şirketimize yapacağınız başvurularda işbu formun doldurulması yasal bir haktır.
+        </p>
+    </div>
+
+    <!-- Application Form -->
+    <form id="kvkkForm" onsubmit="submitKvkkForm(event)">
+        <!-- 1. Kimlik Bilgileri -->
+        <div class="card">
+            <h2 class="section-title">👤 1. Başvuru Sahibi Kimlik ve İletişim Bilgileri</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Adınız ve Soyadınız <span class="required">*</span></label>
+                    <input type="text" id="fullName" required placeholder="Örn: Ahmet Yılmaz">
+                </div>
+                <div class="form-group">
+                    <label>T.C. Kimlik / Pasaport / VKN <span class="required">*</span></label>
+                    <input type="text" id="idNumber" required placeholder="11 haneli T.C. Kimlik No" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label>Telefon Numarası <span class="required">*</span></label>
+                    <input type="tel" id="phone" required placeholder="05XX XXX XX XX">
+                </div>
+                <div class="form-group">
+                    <label>E-Posta Adresi <span class="required">*</span></label>
+                    <input type="email" id="email" required placeholder="ornek@domain.com">
+                </div>
+                <div class="form-group full-width">
+                    <label>Şirketimizle Olan İlişkiniz <span class="required">*</span></label>
+                    <select id="relationship" required>
+                        <option value="">Seçiniz...</option>
+                        <option value="Müşteri">Müşteri / Hizmet Alan</option>
+                        <option value="Çalışan">Mevcut Çalışan</option>
+                        <option value="Eski Çalışan">Eski Çalışan</option>
+                        <option value="İş Ortağı / Tedarikçi">İş Ortağı / Tedarikçi Yetkilisi</option>
+                        <option value="İş Başvurusunda Bulunan">İş / Staj Başvurusunda Bulunan Aday</option>
+                        <option value="Ziyaretçi">Ziyaretçi</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>Tebligata Esas Yerleşim Yeri / İşyeri Adresi <span class="required">*</span></label>
+                    <textarea id="address" required placeholder="İlçe / İl ve tam adresiniz..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Kanuni Talepler -->
+        <div class="card">
+            <h2 class="section-title">📋 2. KVKK Madde 11 Uyarınca Talep Konusu</h2>
+            <p style="font-size: 0.83rem; color: #64748b; margin-bottom: 12px;">Lütfen şirketimizden talep ettiğiniz hak veya hakları işaretleyiniz:</p>
+            
+            <div class="rights-list">
+                <div class="right-item">
+                    <input type="checkbox" id="req1" value="Kişisel verilerimin işlenip işlenmediğini öğrenme">
+                    <label for="req1">1. Şirketiniz nezdinde kişisel verilerimin işlenip işlenmediğini öğrenmek istiyorum.</label>
+                </div>
+                <div class="right-item">
+                    <input type="checkbox" id="req2" value="Kişisel verilerim işlenmişse buna ilişkin bilgi talep etme">
+                    <label for="req2">2. Kişisel verilerim işlenmişse buna ilişkin ayrıntılı bilgi talep ediyorum.</label>
+                </div>
+                <div class="right-item">
+                    <input type="checkbox" id="req3" value="Verilerin işlenme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme">
+                    <label for="req3">3. Kişisel verilerimin işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenmek istiyorum.</label>
+                </div>
+                <div class="right-item">
+                    <input type="checkbox" id="req4" value="Yurt içinde veya yurt dışında verilerin aktarıldığı üçüncü kişileri bilme">
+                    <label for="req4">4. Yurt içinde veya yurt dışında kişisel verilerimin aktarıldığı 3. kişileri bilmek istiyorum.</label>
+                </div>
+                <div class="right-item">
+                    <input type="checkbox" id="req5" value="Eksik veya yanlış işlenmiş verilerin düzeltilmesini isteme">
+                    <label for="req5">5. Kişisel verilerimin eksik veya yanlış işlenmiş olması hâlinde bunların düzeltilmesini talep ediyorum.</label>
+                </div>
+                <div class="right-item">
+                    <input type="checkbox" id="req6" value="Verilerin silinmesini veya yok edilmesini isteme (KVKK Md. 7)">
+                    <label for="req6">6. Kanun'un 7. maddesinde öngörülen şartlar çerçevesinde kişisel verilerimin silinmesini / yok edilmesini talep ediyorum.</label>
+                </div>
+                <div class="right-item">
+                    <input type="checkbox" id="req7" value="Zararın giderilmesini talep etme">
+                    <label for="req7">7. Kişisel verilerimin kanuna aykırı olarak işlenmesi sebebiyle uğradığım zararın giderilmesini talep ediyorum.</label>
+                </div>
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 16px;">
+                <label>Talebinize İlişkin Ayrıntılı Açıklama ve Gerekçeler <span class="required">*</span></label>
+                <textarea id="details" required placeholder="Talebinizi netleştirecek ayrıntıları ve varsa ilgili işlem/departman bilgisini yazınız..."></textarea>
+            </div>
+        </div>
+
+        <!-- 3. Yanıt Tercihi & Yasal Süre -->
+        <div class="card">
+            <h2 class="section-title">⚖️ 3. Yasal Süre ve Yanıt Tercihi</h2>
+            <div class="legal-notice">
+                ⏱️ <b>Yasal 30 Günlük Süre Bilgilendirmesi:</b> KVKK Madde 13/2 gereğince başvurunuz, talebin niteliğine göre <u>en kısa sürede ve en geç 30 (otuz) gün içinde</u> ücretsiz olarak sonuçlandırılacaktır.
+            </div>
+
+            <div class="form-group full-width">
+                <label>Cevabın Tarafınıza Bildirilme Yöntemi <span class="required">*</span></label>
+                <select id="responseChannel" required>
+                    <option value="E-posta">Formda belirttiğim E-posta adresime gönderilsin.</option>
+                    <option value="KEP">Kayıtlı Elektronik Posta (KEP) adresime gönderilsin.</option>
+                    <option value="Posta / Noter">Belirttiğim posta/tebligat adresime iadeli taahhütlü gönderilsin.</option>
+                    <option value="Elden">Şirket merkezinden kimliğimi ibraz ederek elden teslim almak istiyorum.</option>
+                </select>
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 12px;">
+                <label>Varsa KEP (Kayıtlı Elektronik Posta) Adresiniz</label>
+                <input type="text" id="kepAddress" placeholder="ornek@hs01.kep.tr (İsteğe bağlı)">
+            </div>
+
+            <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="confirmData" required style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="confirmData" style="font-size: 0.82rem; cursor: pointer;">
+                    İşbu formda verdiğim bilgilerin doğru ve güncel olduğunu, başvurumun değerlendirilmesi amacıyla kişisel verilerimin işlenmesini kabul ediyorum.
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <span>📨 Başvuruyu Resmi Olarak Gönder</span>
+        </button>
+    </form>
+
+    <!-- Success View -->
+    <div class="success-box" id="successBox">
+        <div class="success-icon">✅</div>
+        <h2 style="font-size: 1.4rem; color: var(--secondary);">KVKK Başvurunuz Alındı!</h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 6px;">
+            Başvurunuz veri sorumlusu sistemimize başarıyla kaydedilmiştir.
+        </p>
+
+        <div>
+            <span style="font-size: 0.85rem; color: #64748b;">Başvuru Takip Numaranız:</span><br>
+            <div class="tracking-badge" id="trackingCodeDisplay">KVKK-2026-0000</div>
+        </div>
+
+        <div class="countdown-badge" id="deadlineDisplay">
+            ⏳ Kanuni Son Yanıt Tarihi: Hesaplanıyor... (30 Gün Kalan)
+        </div>
+
+        <div class="action-btns">
+            <button class="btn-action btn-print" onclick="window.print()">🖨️ Başvuru Formunu Yazdır / PDF Kaydet</button>
+            <button class="btn-action btn-new" onclick="location.reload()">➕ Yeni Başvuru</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function submitKvkkForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerText = '⏳ Kaydediliyor...';
+
+    // Seçilen hakları topla
+    const rights = [];
+    for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById('req' + i);
+        if (el && el.checked) rights.push(el.value);
+    }
+
+    if (rights.length === 0) {
+        alert('Lütfen KVKK Madde 11 uyarınca en az bir kanuni talep hakkını işaretleyiniz.');
+        btn.disabled = false;
+        btn.innerText = '📨 Başvuruyu Resmi Olarak Gönder';
+        return;
+    }
+
+    const payload = {
+        full_name: document.getElementById('fullName').value.trim(),
+        id_number: document.getElementById('idNumber').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        relationship: document.getElementById('relationship').value,
+        address: document.getElementById('address').value.trim(),
+        rights: rights,
+        details: document.getElementById('details').value.trim(),
+        response_channel: document.getElementById('responseChannel').value,
+        kep_address: document.getElementById('kepAddress').value.trim(),
+        created_at: new Date().toISOString()
+    };
+
+    let trackingCode = 'KVKK-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
+
+    try {
+        const res = await fetch('/api/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.tracking_code) trackingCode = data.tracking_code;
+        }
+    } catch (err) {
+        // Yerel veya static modda localStorage'a kaydet
+        const localList = JSON.parse(localStorage.getItem('kvkk_submissions') || '[]');
+        payload.tracking_code = trackingCode;
+        localList.push(payload);
+        localStorage.setItem('kvkk_submissions', JSON.stringify(localList));
+    }
+
+    // Yasal 30 gün hesaplama
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + 30);
+    const deadlineStr = deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    document.getElementById('kvkkForm').style.display = 'none';
+    document.getElementById('successBox').style.display = 'block';
+    document.getElementById('trackingCodeDisplay').innerText = trackingCode;
+    document.getElementById('deadlineDisplay').innerHTML = `⏳ <b>Yasal Son Yanıt Tarihi:</b> ${deadlineStr} (30 Gün Kalan)`;
+}
+</script>
+
+</body>
+</html>
