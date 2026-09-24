@@ -1,6 +1,7 @@
 # 🛡️ 6698 KVKK İlgili Kişi Başvuru Scripti & Çerez Yönetimi
 
 [![CI](https://github.com/eimza-kep/kurumsal-kvkk-basvuru-scripti/actions/workflows/ci.yml/badge.svg)](https://github.com/eimza-kep/kurumsal-kvkk-basvuru-scripti/actions/workflows/ci.yml)
+[![Canlı Demo](https://img.shields.io/badge/Demo-Canl%C4%B1%20Test%20Et-brightgreen.svg)](https://eimza-kep.github.io/kurumsal-kvkk-basvuru-scripti/)
 [![Lisans: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Kurulum Süresi](https://img.shields.io/badge/Kurulum-1%20Dakika-brightgreen)](#)
 [![Bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0%20(S%C4%B1f%C4%B1r)-blue)](#)
