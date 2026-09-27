@@ -60,6 +60,19 @@ Mevcut sitenizin sayfalarına KVKK onay barını eklemek için sayfanızın en a
 
 ---
 
+## 🌐 Veri Gizliliği & E-Dönüşüm Açık Kaynak Ekosistemi
+
+Bu KVKK başvuru ve uyum aracı, [@eimza-kep](https://github.com/eimza-kep) açık kaynak ekosisteminin veri koruma ve regülasyon modülüdür. İlgili diğer araçlar:
+
+* 📨 [kep-adresi-dogrulayici](https://github.com/eimza-kep/kep-adresi-dogrulayici) - KVKK 13. madde uyarınca ilgili kişiye resmi KEP cevabı gönderme ve adres doğrulama.
+* 📄 [python-pdf-eimza-dogrulayici](https://github.com/eimza-kep/python-pdf-eimza-dogrulayici) - E-İmzalı dijital açık rıza ve taahhütname belgelerini doğrulama kütüphanesi.
+* 👥 [kurumsal-ik-is-basvuru-scripti](https://github.com/eimza-kep/kurumsal-ik-is-basvuru-scripti) - Çalışan adayları için KVKK uyumlu CV ve özgeçmiş toplama portali.
+* 🏢 [kurumsal-isg-ziyaretci-kayit-scripti](https://github.com/eimza-kep/kurumsal-isg-ziyaretci-kayit-scripti) - Ziyaretçi ve kamera kaydı aydınlatma metinleri onay portali.
+* 🌟 [awesome-turkiye-e-donusum](https://github.com/eimza-kep/awesome-turkiye-e-donusum) - Türkiye e-Dönüşüm açık kaynak araçları ve kütüphaneleri kürasyonu.
+
+---
+
 ## 📜 Lisans
 
 Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır. Kurumsal ve ticari web sitelerinde özgürce kullanılabilir.
+

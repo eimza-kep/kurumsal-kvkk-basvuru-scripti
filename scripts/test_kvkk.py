@@ -21,6 +21,14 @@ from server import init_db, DB_FILE
 class TestKVKKPortal(unittest.TestCase):
     def setUp(self):
         init_db()
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.cursor().execute("DELETE FROM submissions WHERE tracking_code LIKE 'KVKK-2026-TEST%'")
+            conn.commit()
+
+    def tearDown(self):
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.cursor().execute("DELETE FROM submissions WHERE tracking_code LIKE 'KVKK-2026-TEST%'")
+            conn.commit()
 
     def test_database_initialization(self):
         self.assertTrue(os.path.exists(DB_FILE), "SQLite veritabani dosyasi olusturulamadi.")
