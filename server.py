@@ -7,6 +7,8 @@ Yerleşik SQLite veritabanı ile başvuruları güvenle depolar.
 - 30 günlük yasal süre sayacı ve acil uyarı motoru
 - KEP adresi formatı ve BTK doğrulayıcısı
 - KVKK Md. 11/13 başvuru durum sorgulama portalı (/takip)
+- KVKK Md. 13/3 Gerekçeli Karar Belgesi (A4 HTML & PDF)
+- VERBİS Uyum & Faaliyet Raporu ve Excel CSV İhracı
 """
 
 import os
@@ -14,6 +16,7 @@ import sys
 import json
 import sqlite3
 import random
+import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -26,6 +29,14 @@ from scripts.kvkk_validation_engine import (
     validate_kep_address,
     calculate_deadline_metrics,
     build_public_status_view
+)
+from scripts.kvkk_decision_generator import (
+    generate_decision_document_html,
+    generate_kep_reply_package,
+    calculate_verbis_report,
+    generate_verbis_report_html,
+    generate_kvkk_csv_export,
+    DEFAULT_COMPANY
 )
 
 PORT = int(os.environ.get("PORT", 8080))
@@ -80,6 +91,16 @@ class KVKKHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
 
+    def get_submission_by_code(self, tracking_code):
+        if not tracking_code:
+            return None
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM submissions WHERE tracking_code = ?", (tracking_code,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
     def do_GET(self):
         parsed = urlparse(self.path)
         qs = parse_qs(parsed.query)
@@ -116,6 +137,75 @@ class KVKKHandler(SimpleHTTPRequestHandler):
                             pass
                     r["deadline_metrics"] = calculate_deadline_metrics(r.get("created_at"))
                 self.send_json(rows)
+            return
+
+        if parsed.path == "/api/karar-belgesi-html":
+            tracking_code = qs.get("tracking_code", [""])[0]
+            sub = self.get_submission_by_code(tracking_code)
+            if not sub:
+                self.send_error(404, f"'{tracking_code}' takip kodlu başvuru bulunamadı.")
+                return
+
+            html = generate_decision_document_html(sub)
+            body = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if parsed.path == "/api/kep-cevap-sablonu":
+            tracking_code = qs.get("tracking_code", [""])[0]
+            sub = self.get_submission_by_code(tracking_code)
+            if not sub:
+                self.send_error(404, f"'{tracking_code}' takip kodlu başvuru bulunamadı.")
+                return
+
+            pkg = generate_kep_reply_package(sub)
+            self.send_json(pkg)
+            return
+
+        if parsed.path == "/api/verbis-raporu-json":
+            with sqlite3.connect(DB_FILE) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM submissions")
+                rows = [dict(r) for r in cursor.fetchall()]
+            report = calculate_verbis_report(rows)
+            self.send_json({"status": "success", "report": report})
+            return
+
+        if parsed.path == "/api/verbis-raporu-html":
+            with sqlite3.connect(DB_FILE) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM submissions")
+                rows = [dict(r) for r in cursor.fetchall()]
+            html = generate_verbis_report_html(rows)
+            body = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if parsed.path == "/api/export-csv":
+            with sqlite3.connect(DB_FILE) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM submissions ORDER BY created_at DESC")
+                rows = [dict(r) for r in cursor.fetchall()]
+            csv_text = generate_kvkk_csv_export(rows)
+            body = csv_text.encode("utf-8")
+            today_str = datetime.date.today().strftime("%Y%m%d")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="kvkk_basvurular_{today_str}.csv"')
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
             return
 
         # Statik dosya sunumu

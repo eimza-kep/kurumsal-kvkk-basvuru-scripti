@@ -32,8 +32,21 @@ Türkiye'de faaliyet gösteren şirketler, e-ticaret siteleri, avukatlar, mali m
 - **Görsel İlerleme Çubuğu & Yasal Sayaç:** 30 günlük yasal yanıtlama sürecinden kaç gün kaldığı dinamik yüzde çubuğu ile gösterilir.
 - **Gerekçeli Karar Notu:** Veri sorumlusunun girdiği yasal yanıt özeti ve kararı başvuru sahibi tarafından anında görüntülenebilir.
 
-### 4. 🛡️ Yönetim Paneli (`admin.html`) & SQLite Gerekçeli Karar Kaydı
-- Başvuru arama, filtreleme, inceleme ve Excel/CSV dışa aktarım (UTF-8 BOM Türkçe karakter korumalı).
+### 4. 📄 KVKK Md. 13/3 Gerekçeli Karar Belgesi (A4 Yazdırılabilir / PDF Kaydedilebilir)
+- 6698 Sayılı Kanun Madde 13/3 uyarınca; veri sorumlusunun talebi kabul veya gerekçesini açıklayarak reddetmesi ve cevabını yazılı veya elektronik ortamda bildirmesi esastır.
+- Sistem, sonuçlandırılan her başvuru için tek tıkla resmi şirket antetli, yasal gerekçeli, talep edilen KVKK Md. 11 hakları dökümlü, **KVKK Md. 14 Kişisel Verileri Koruma Kurulu'na Şikayet Hakkı Bildirimini** içeren ve e-imza/kaşe alanları barındıran **A4 formatında standart Gerekçeli Karar Belgesi** üretir.
+- Başvuru sahipleri de durum sorgulama sayfasından (`/takip`) resmi karar belgesini tek tıkla yazdırabilir veya PDF olarak indirebilir.
+
+### 5. 📊 VERBİS Yıllık Faaliyet & Uyum Raporu Motoru
+- Veri Sorumluları Sicil Bilgi Sistemi (VERBİS) ve KVKK denetimleri için yıllık istatistiki uyum raporu üretir.
+- Toplam başvuru sayısı, yasal 30 günlük süreye uyum yüzdesi, ortalama yanıt süresi, hak bazında talep dağılımı ve başvuru sahibi ilişki dağılımı grafiksel KPI kartları ve A4 çıktısı olarak sunulur.
+
+### 6. 📨 KEP Resmi Yanıt Paketi & Excel Uyumlu CSV Dışa Aktarımı
+- **KEP Resmi Yanıt Şablonu:** Yetkili KEP sağlayıcıları (PTT KEP, TÜRKKEP vb.) üzerinden gönderilecek resmi cevabın yasal konu başlığı, tebliğ metni ve mevzuat referanslarını otomatik hazırlar.
+- **Excel/CSV Export:** UTF-8 BOM destekli Türkçe karakter korumalı dışa aktarım ile tüm başvurular tek tıkla tabloya dönüştürülür.
+
+### 7. 🛡️ Yönetim Paneli (`admin.html`) & SQLite Gerekçeli Karar Kaydı
+- Başvuru arama, filtreleme, inceleme, canlı KEP yanıt motoru ve karar belgesi görüntüleme.
 - Karar ve durum güncellemesi ("İnceleniyor", "Hukuk Biriminde", "Cevaplandı", "Reddedildi") doğrudan SQLite veritabanında kalıcı olarak saklanır.
 
 ---
@@ -85,6 +98,11 @@ KVKK onay barını mevcut web sitenize eklemek için `<body>` etiketinin hemen �
 | `GET` | `/api/list` | Tüm başvuruları 30 günlük yasal süre sayacı metrikleriyle birlikte listeler. |
 | `POST` | `/api/track` | Takip kodu ve kimlik doğrulama ile maskelenmiş kamuya açık başvuru durumunu döner. |
 | `POST` | `/api/status` | Veri sorumlusu tarafından başvuru durumunu ve gerekçeli yanıt notunu günceller. |
+| `GET` | `/api/karar-belgesi-html?tracking_code=...` | KVKK Md. 13/3 uyumlu resmi gerekçeli karar belgesini A4 HTML formatında sunar. |
+| `GET` | `/api/kep-cevap-sablonu?tracking_code=...` | Resmi KEP yanıt paketi, konu ve gövde şablonunu JSON olarak üretir. |
+| `GET` | `/api/verbis-raporu-json` | VERBİS uyum raporu metriklerini ve yasal süre istatistiklerini döner. |
+| `GET` | `/api/verbis-raporu-html` | Yazdırılabilir A4 formatında VERBİS yıllık faaliyet ve uyum raporunu görüntüler. |
+| `GET` | `/api/export-csv` | Excel uyumlu UTF-8 BOM CSV formatında tüm başvuruları indirir. |
 | `GET` | `/api/validate-kep?kep=...` | KEP adresinin BTK standartlarına uygunluğunu anlık olarak test eder. |
 | `GET` | `/health` | Servis sağlık durum kontrolü. |
 
@@ -95,8 +113,8 @@ KVKK onay barını mevcut web sitenize eklemek için `<body>` etiketinin hemen �
 ```
 kurumsal-kvkk-basvuru-scripti/
 ├── index.html                  # İlgili kişi başvuru formu ve KEP format denetleyicisi
-├── takip.html                  # Başvuru durum ve 30 günlük yasal süre sorgulama portalı
-├── admin.html                  # Yönetici paneli, yasal süre uyarı banner'ı & karar kaydı
+├── takip.html                  # Başvuru durum, 30 günlük yasal sayaç & karar belgesi portalı
+├── admin.html                  # Yönetici paneli, yasal süre banner'ı, VERBİS raporu & KEP motoru
 ├── server.py                   # Bağımsız Python HTTP + SQLite REST sunucusu (Port 8080)
 ├── api.php                     # Paylaşımlı hosting ve cPanel için PHP REST backend
 ├── cookie-banner.js            # Bağımsız KVKK çerez onay banner'ı
@@ -105,7 +123,8 @@ kurumsal-kvkk-basvuru-scripti/
 ├── baslat.sh                   # Linux / macOS başlatıcı
 ├── scripts/
 │   ├── kvkk_validation_engine.py  # KEP doğrulama, yasal 30 gün sayacı & maskeleme motoru
-│   └── test_kvkk.py               # Kapsamlı birim ve entegrasyon test süiti
+│   ├── kvkk_decision_generator.py # KVKK Md. 13/3 karar belgesi, VERBİS raporu & KEP şablonu
+│   └── test_kvkk.py               # 11/11 kapsamlı birim ve entegrasyon test süiti
 ├── .github/
 │   └── workflows/ci.yml        # Otomatik GitHub Actions CI testi
 └── README.md                   # Dokümantasyon
