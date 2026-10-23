@@ -118,7 +118,12 @@
 <div class="container">
     <!-- Header -->
     <div class="header">
-        <div class="header-badge">6698 SAYILI KANUN KAPSAMINDA</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div class="header-badge" style="margin-bottom: 0;">6698 SAYILI KANUN KAPSAMINDA</div>
+            <a href="takip.html" style="font-size: 0.82rem; font-weight: 700; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; padding: 4px 10px; border-radius: 6px;">
+                🔍 Başvuru Durumu Sorgula →
+            </a>
+        </div>
         <h1>Veri Sahibi (İlgili Kişi) Başvuru Formu</h1>
         <p>
             6698 sayılı Kişisel Verilerin Korunması Kanunu'nun 11. ve 13. maddeleri uyarınca, veri sorumlusu sıfatıyla şirketimize yapacağınız başvurularda işbu formun doldurulması yasal bir haktır.
@@ -218,7 +223,7 @@
 
             <div class="form-group full-width">
                 <label>Cevabın Tarafınıza Bildirilme Yöntemi <span class="required">*</span></label>
-                <select id="responseChannel" required>
+                <select id="responseChannel" required onchange="handleChannelChange()">
                     <option value="E-posta">Formda belirttiğim E-posta adresime gönderilsin.</option>
                     <option value="KEP">Kayıtlı Elektronik Posta (KEP) adresime gönderilsin.</option>
                     <option value="Posta / Noter">Belirttiğim posta/tebligat adresime iadeli taahhütlü gönderilsin.</option>
@@ -227,8 +232,9 @@
             </div>
 
             <div class="form-group full-width" style="margin-top: 12px;">
-                <label>Varsa KEP (Kayıtlı Elektronik Posta) Adresiniz</label>
-                <input type="text" id="kepAddress" placeholder="ornek@hs01.kep.tr (İsteğe bağlı)">
+                <label>Kayıtlı Elektronik Posta (KEP) Adresiniz <span id="kepReqStar" style="display:none; color:var(--danger)">*</span></label>
+                <input type="text" id="kepAddress" placeholder="Örn: ahmet.yilmaz@hs01.kep.tr veya sirket@hs02.kep.tr" oninput="checkKepAddress()">
+                <div id="kepFeedback" style="font-size: 0.78rem; font-weight: 600; margin-top: 4px; display: none;"></div>
             </div>
 
             <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px;">
@@ -262,18 +268,76 @@
         </div>
 
         <div class="action-btns">
-            <button class="btn-action btn-print" onclick="window.print()">🖨️ Başvuru Formunu Yazdır / PDF Kaydet</button>
+            <a id="btnTrackLink" href="takip.html" class="btn-action" style="background: var(--primary); color: white;">🔍 Başvurumu Takip Et</a>
+            <button class="btn-action btn-print" onclick="window.print()">🖨️ Formu Yazdır / PDF</button>
             <button class="btn-action btn-new" onclick="location.reload()">➕ Yeni Başvuru</button>
         </div>
     </div>
 </div>
 
 <script>
+function handleChannelChange() {
+    const ch = document.getElementById('responseChannel').value;
+    const star = document.getElementById('kepReqStar');
+    const kepInput = document.getElementById('kepAddress');
+    if (ch === 'KEP') {
+        star.style.display = 'inline';
+        kepInput.required = true;
+        kepInput.focus();
+    } else {
+        star.style.display = 'none';
+        kepInput.required = false;
+    }
+    checkKepAddress();
+}
+
+function checkKepAddress() {
+    const val = document.getElementById('kepAddress').value.trim().toLowerCase();
+    const fb = document.getElementById('kepFeedback');
+    const ch = document.getElementById('responseChannel').value;
+
+    if (!val) {
+        fb.style.display = 'none';
+        return true;
+    }
+
+    const kepRegex = /^[a-zA-Z0-9_\.\-]+@[a-zA-Z0-9_\.\-]+\.kep\.tr$/;
+    if (kepRegex.test(val)) {
+        fb.style.display = 'block';
+        fb.style.color = '#15803d';
+        fb.innerText = '✅ BTK KEP Standartlarına Uygun Format (.kep.tr)';
+        return true;
+    } else {
+        fb.style.display = 'block';
+        fb.style.color = '#dc2626';
+        fb.innerText = '⚠️ Geçersiz KEP Formatı! KEP adresi ".kep.tr" uzantılı olmalıdır (Örn: ad.soyad@hs01.kep.tr).';
+        return false;
+    }
+}
+
 async function submitKvkkForm(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerText = '⏳ Kaydediliyor...';
+
+    const ch = document.getElementById('responseChannel').value;
+    const kep = document.getElementById('kepAddress').value.trim();
+
+    if (ch === 'KEP') {
+        if (!kep) {
+            alert('Cevabın KEP ile iletilmesini tercih ettiğiniz için lütfen geçerli bir KEP adresi giriniz.');
+            btn.disabled = false;
+            btn.innerText = '📨 Başvuruyu Resmi Olarak Gönder';
+            return;
+        }
+        if (!checkKepAddress()) {
+            alert('Lütfen BTK standartlarına uygun geçerli bir KEP adresi giriniz (Örn: ad.soyad@hs01.kep.tr).');
+            btn.disabled = false;
+            btn.innerText = '📨 Başvuruyu Resmi Olarak Gönder';
+            return;
+        }
+    }
 
     // Seçilen hakları topla
     const rights = [];
@@ -298,8 +362,8 @@ async function submitKvkkForm(e) {
         address: document.getElementById('address').value.trim(),
         rights: rights,
         details: document.getElementById('details').value.trim(),
-        response_channel: document.getElementById('responseChannel').value,
-        kep_address: document.getElementById('kepAddress').value.trim(),
+        response_channel: ch,
+        kep_address: kep,
         created_at: new Date().toISOString()
     };
 
@@ -311,9 +375,14 @@ async function submitKvkkForm(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        if (res.ok) {
-            const data = await res.json();
+        const data = await res.json();
+        if (res.ok && data.success) {
             if (data.tracking_code) trackingCode = data.tracking_code;
+        } else {
+            alert(data.error || 'Başvuru kaydedilemedi.');
+            btn.disabled = false;
+            btn.innerText = '📨 Başvuruyu Resmi Olarak Gönder';
+            return;
         }
     } catch (err) {
         // Yerel veya static modda localStorage'a kaydet
@@ -332,6 +401,7 @@ async function submitKvkkForm(e) {
     document.getElementById('successBox').style.display = 'block';
     document.getElementById('trackingCodeDisplay').innerText = trackingCode;
     document.getElementById('deadlineDisplay').innerHTML = `⏳ <b>Yasal Son Yanıt Tarihi:</b> ${deadlineStr} (30 Gün Kalan)`;
+    document.getElementById('btnTrackLink').href = `takip.html?code=${trackingCode}`;
 }
 </script>
 

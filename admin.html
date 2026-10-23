@@ -7,6 +7,7 @@
     <style>
         :root {
             --primary: #1e40af;
+            --primary-hover: #1d4ed8;
             --bg: #f8fafc;
             --card-bg: #ffffff;
             --border: #e2e8f0;
@@ -24,9 +25,18 @@
         /* Header */
         .topbar {
             display: flex; justify-content: space-between; align-items: center;
-            background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px;
+            background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 12px;
         }
         .topbar h1 { font-size: 1.3rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+
+        /* Urgent Alert Banner */
+        .urgent-banner {
+            display: none; background: #fef2f2; border: 1px solid #f87171; border-radius: 10px;
+            padding: 14px 20px; margin-bottom: 20px; color: #991b1b; font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .urgent-banner b { font-weight: 800; }
 
         /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
@@ -38,7 +48,7 @@
         .stat-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; }
 
         /* Table Card */
-        .table-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .table-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .table-header {
             padding: 16px 20px; border-bottom: 1px solid var(--border); background: #fafafa;
             display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -48,7 +58,7 @@
         }
         .btn {
             padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-            border: 1px solid var(--border); background: white; color: #334155; display: inline-flex; align-items: center; gap: 6px;
+            border: 1px solid var(--border); background: white; color: #334155; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
         }
         .btn:hover { background: #f1f5f9; }
         .btn-primary { background: var(--primary); color: white; border: none; }
@@ -59,20 +69,31 @@
         td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
         tr:hover { background: #f8fafc; }
 
+        /* Traffic-Light Badges */
         .badge {
             display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
         }
-        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-safe { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-urgent { background: #fee2e2; color: #991b1b; }
-        .badge-done { background: #dcfce7; color: #166534; }
+        .badge-expired { background: #991b1b; color: white; }
+        .badge-done { background: #e0e7ff; color: #3730a3; }
 
         .modal-view {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none;
-            justify-content: center; align-items: center; z-index: 100;
+            justify-content: center; align-items: center; z-index: 100; padding: 20px;
         }
         .modal-content {
-            background: white; border-radius: 12px; width: 650px; max-width: 90vw; max-height: 85vh;
+            background: white; border-radius: 12px; width: 680px; max-width: 95vw; max-height: 88vh;
             overflow-y: auto; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+            padding-bottom: 12px; margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -81,10 +102,24 @@
 <div class="container">
     <div class="topbar">
         <h1>🛡️ KVKK İlgili Kişi Başvuru Yönetim Paneli</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="index.html" class="btn" target="_blank">🌐 Başvuru Formunu Aç</a>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="index.html" class="btn" target="_blank">🌐 Başvuru Formu</a>
+            <a href="takip.html" class="btn" target="_blank">🔍 Takip Portalı</a>
             <button class="btn btn-primary" onclick="exportCsv()">📥 CSV Olarak İndir</button>
+            <button class="btn" onclick="loadSubmissions()">🔄 Yenile</button>
         </div>
+    </div>
+
+    <!-- Urgent Countdown Warning Banner (Issue #1) -->
+    <div class="urgent-banner" id="urgentBanner" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.3rem;">🚨</span>
+            <div>
+                <b>KVKK MADDE 13/2 YASAL SÜRE UYARISI:</b> 
+                <span id="urgentCountMsg">30 günlük yasal süreye 5 günden az kalan kritik başvurular bulunmaktadır.</span>
+            </div>
+        </div>
+        <button class="btn" style="background: white; color: #991b1b; border: 1px solid #f87171;" onclick="filterUrgentOnly()">Yalnızca Kritikleri Listele</button>
     </div>
 
     <!-- Stats -->
@@ -98,7 +133,7 @@
             <span class="stat-value" id="statPending" style="color: var(--warning);">0</span>
         </div>
         <div class="stat-card">
-            <span class="stat-title">🚨 Kritik (Son 7 Gün)</span>
+            <span class="stat-title">🚨 Kritik (Son 5 Gün)</span>
             <span class="stat-value" id="statUrgent" style="color: var(--danger);">0</span>
         </div>
         <div class="stat-card">
@@ -111,7 +146,16 @@
     <div class="table-card">
         <div class="table-header">
             <input type="text" class="search-input" id="searchBox" placeholder="Takip Kodu, İsim veya TCKN ara..." oninput="filterTable()">
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Yasal Süre: KVKK Md. 13/2 gereğince azami 30 gündür.</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="statusFilter" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.85rem;" onchange="filterTable()">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="İnceleniyor">İnceleniyor</option>
+                    <option value="Hukuk Biriminde">Hukuk Biriminde</option>
+                    <option value="Cevaplandı">Cevaplandı</option>
+                    <option value="Reddedildi">Reddedildi</option>
+                </select>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Yasal Süre: Azami 30 gün</span>
+            </div>
         </div>
         <table>
             <thead>
@@ -119,8 +163,9 @@
                     <th>Takip Kodu</th>
                     <th>Başvuru Sahibi</th>
                     <th>İlişki</th>
+                    <th>Cevap Kanalı</th>
                     <th>Başvuru Tarihi</th>
-                    <th>Kalan Yasal Süre</th>
+                    <th>30 Günlük Yasal Süre (Countdown)</th>
                     <th>Durum</th>
                     <th>İşlem</th>
                 </tr>
@@ -135,13 +180,34 @@
 <!-- Detail Modal -->
 <div class="modal-view" id="detailModal">
     <div class="modal-content">
-        <h2 style="font-size: 1.2rem; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-            📄 Başvuru Detayı: <span id="modalTracking"></span>
-        </h2>
-        <div id="modalBody" style="font-size: 0.9rem; line-height: 1.6; display: flex; flex-direction: column; gap: 10px;"></div>
-        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="btn" onclick="closeModal()">Kapat</button>
-            <button class="btn btn-primary" onclick="markAsCompleted()">✅ Cevaplandı Olarak İşaretle</button>
+        <div class="modal-header">
+            <h2 style="font-size: 1.2rem; margin: 0;">
+                📄 Başvuru Detayı: <span id="modalTracking" style="color: var(--primary);"></span>
+            </h2>
+            <button onclick="closeModal()" style="border:none; background:none; font-size: 1.2rem; cursor:pointer;">✖</button>
+        </div>
+
+        <div id="modalBody" style="font-size: 0.88rem; line-height: 1.6; display: flex; flex-direction: column; gap: 10px;"></div>
+
+        <div style="margin-top: 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <label style="font-weight: 700; font-size: 0.83rem; display: block; margin-bottom: 6px; color: #334155;">
+                📝 Veri Sorumlusu Kararı & İlgili Kişi Bilgilendirme Notu:
+            </label>
+            <textarea id="modalResolutionNote" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem;" placeholder="Başvuruya verilen yasal yanıtın özeti veya gerekçeli karar metni..."></textarea>
+        </div>
+
+        <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 14px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <label style="font-size: 0.83rem; font-weight: 700;">Durum:</label>
+                <select id="modalStatusSelect" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.85rem;">
+                    <option value="İnceleniyor">İnceleniyor</option>
+                    <option value="Hukuk Biriminde">Hukuk Biriminde</option>
+                    <option value="Cevaplandı">Cevaplandı</option>
+                    <option value="Reddedildi">Reddedildi</option>
+                </select>
+                <button class="btn btn-primary" onclick="saveStatusUpdate()">💾 Durumu Kaydet</button>
+            </div>
+            <button class="btn" onclick="window.print()">🖨️ Yazdır</button>
         </div>
     </div>
 </div>
@@ -160,39 +226,6 @@ async function loadSubmissions() {
         submissions = JSON.parse(localStorage.getItem('kvkk_submissions') || '[]');
     }
 
-    // Demo verisi ekle (boşsa)
-    if (submissions.length === 0) {
-        submissions = [
-            {
-                tracking_code: "KVKK-2026-104821",
-                full_name: "Mehmet Demir",
-                id_number: "28419201948",
-                phone: "0532 555 12 34",
-                email: "mehmet.demir@example.com",
-                relationship: "Müşteri",
-                rights: ["Kişisel verilerimin silinmesini veya yok edilmesini isteme (KVKK Md. 7)"],
-                details: "Eski üyeliğimin tamamen silinmesini ve SMS gönderiminin iptalini talep ediyorum.",
-                response_channel: "E-posta",
-                created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
-                status: "İnceleniyor"
-            },
-            {
-                tracking_code: "KVKK-2026-291844",
-                full_name: "Ayşe Kaya",
-                id_number: "19284729104",
-                phone: "0544 333 44 55",
-                email: "ayse.kaya@example.com",
-                relationship: "Eski Çalışan",
-                rights: ["Kişisel verilerimin işlenip işlenmediğini öğrenme", "Aktarılan üçüncü kişileri bilme"],
-                details: "İşten ayrılışım sonrası bordro ve özlük verilerimin kimlerle paylaşıldığı bilgisi.",
-                response_channel: "KEP",
-                created_at: new Date(Date.now() - 25 * 86400000).toISOString(),
-                status: "Hukuk Biriminde"
-            }
-        ];
-        localStorage.setItem('kvkk_submissions', JSON.stringify(submissions));
-    }
-
     renderTable(submissions);
     updateStats();
 }
@@ -209,27 +242,45 @@ function renderTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#64748b;">Kayıt bulunamadı.</td></tr>';
+        return;
+    }
+
     data.forEach((sub, idx) => {
         const daysLeft = calculateDaysLeft(sub.created_at);
         let badgeHtml = '';
+
         if (sub.status === 'Cevaplandı') {
-            badgeHtml = '<span class="badge badge-done">Cevaplandı</span>';
-        } else if (daysLeft <= 7) {
+            badgeHtml = '<span class="badge badge-done">✅ Cevaplandı</span>';
+        } else if (sub.status === 'Reddedildi') {
+            badgeHtml = '<span class="badge" style="background:#fee2e2; color:#b91c1c;">❌ Reddedildi</span>';
+        } else if (daysLeft <= 0) {
+            badgeHtml = `<span class="badge badge-expired">🚨 Yasal Süre Doldu!</span>`;
+        } else if (daysLeft <= 5) {
             badgeHtml = `<span class="badge badge-urgent">🚨 ${daysLeft} Gün Kaldı</span>`;
+        } else if (daysLeft <= 15) {
+            badgeHtml = `<span class="badge badge-warning">⚠️ ${daysLeft} Gün Kaldı</span>`;
         } else {
-            badgeHtml = `<span class="badge badge-pending">⏳ ${daysLeft} Gün Kaldı</span>`;
+            badgeHtml = `<span class="badge badge-safe">⏳ ${daysLeft} Gün Kaldı</span>`;
         }
 
-        const dateStr = new Date(sub.created_at).toLocaleDateString('tr-TR');
+        const dateStr = sub.created_at ? new Date(sub.created_at).toLocaleDateString('tr-TR') : '-';
+
+        let channelLabel = sub.response_channel || 'E-posta';
+        if (channelLabel === 'KEP') {
+            channelLabel = `<span style="color:#1e40af; font-weight:700;">📨 KEP</span>`;
+        }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><b>${sub.tracking_code || 'KVKK-N/A'}</b></td>
-            <td>${sub.full_name}</td>
-            <td>${sub.relationship}</td>
+            <td><b>${escapeHtml(sub.full_name)}</b><br><small style="color:var(--text-muted)">TCKN: ${escapeHtml(sub.id_number)}</small></td>
+            <td>${escapeHtml(sub.relationship || '-')}</td>
+            <td>${channelLabel}</td>
             <td>${dateStr}</td>
             <td>${badgeHtml}</td>
-            <td>${sub.status || 'İnceleniyor'}</td>
+            <td><small style="font-weight:700;">${escapeHtml(sub.status || 'İnceleniyor')}</small></td>
             <td>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.78rem;" onclick="viewDetail(${idx})">İncele</button>
             </td>
@@ -241,26 +292,48 @@ function renderTable(data) {
 function updateStats() {
     document.getElementById('statTotal').innerText = submissions.length;
     let pending = 0, urgent = 0, done = 0;
+
     submissions.forEach(s => {
-        if (s.status === 'Cevaplandı') {
+        if (s.status === 'Cevaplandı' || s.status === 'Reddedildi') {
             done++;
         } else {
             pending++;
-            if (calculateDaysLeft(s.created_at) <= 7) urgent++;
+            if (calculateDaysLeft(s.created_at) <= 5) urgent++;
         }
     });
+
     document.getElementById('statPending').innerText = pending;
     document.getElementById('statUrgent').innerText = urgent;
     document.getElementById('statDone').innerText = done;
+
+    // Urgent Banner toggle
+    const banner = document.getElementById('urgentBanner');
+    if (urgent > 0) {
+        banner.style.display = 'flex';
+        document.getElementById('urgentCountMsg').innerText = `30 günlük yasal cevap verme süresine 5 günden az kalan ${urgent} adet kritik başvuru bulunmaktadır! Lütfen gecikmeksizin cevaplayınız.`;
+    } else {
+        banner.style.display = 'none';
+    }
 }
 
 function filterTable() {
     const q = document.getElementById('searchBox').value.toLowerCase().trim();
-    const filtered = submissions.filter(s => 
-        (s.tracking_code && s.tracking_code.toLowerCase().includes(q)) ||
-        (s.full_name && s.full_name.toLowerCase().includes(q)) ||
-        (s.id_number && s.id_number.includes(q))
-    );
+    const st = document.getElementById('statusFilter').value;
+
+    const filtered = submissions.filter(s => {
+        const matchesQ = !q || (s.tracking_code && s.tracking_code.toLowerCase().includes(q)) ||
+                              (s.full_name && s.full_name.toLowerCase().includes(q)) ||
+                              (s.id_number && s.id_number.includes(q)) ||
+                              (s.email && s.email.toLowerCase().includes(q));
+        const matchesSt = !st || (s.status || 'İnceleniyor') === st;
+        return matchesQ && matchesSt;
+    });
+    renderTable(filtered);
+}
+
+function filterUrgentOnly() {
+    document.getElementById('statusFilter').value = '';
+    const filtered = submissions.filter(s => s.status !== 'Cevaplandı' && s.status !== 'Reddedildi' && calculateDaysLeft(s.created_at) <= 5);
     renderTable(filtered);
 }
 
@@ -268,15 +341,36 @@ function viewDetail(idx) {
     activeViewingIndex = idx;
     const s = submissions[idx];
     document.getElementById('modalTracking').innerText = s.tracking_code;
+    document.getElementById('modalStatusSelect').value = s.status || 'İnceleniyor';
+    document.getElementById('modalResolutionNote').value = s.resolution_note || '';
+
+    const daysLeft = calculateDaysLeft(s.created_at);
+    let kepInfoHtml = '';
+    if (s.kep_address) {
+        const isOfficial = s.kep_address.includes('.kep.tr');
+        kepInfoHtml = `<br><span style="color:#1e40af; font-weight:600;">KEP Adresi:</span> ${escapeHtml(s.kep_address)} ${isOfficial ? '<span style="color:#15803d; font-size:0.75rem;">(✅ BTK KEP Standardı)</span>' : '<span style="color:#dc2626;">(Geçersiz Format)</span>'}`;
+    }
+
     document.getElementById('modalBody').innerHTML = `
-        <div><b>Başvuru Sahibi:</b> ${s.full_name} (TC/VKN: ${s.id_number})</div>
-        <div><b>İletişim:</b> ${s.phone} | ${s.email}</div>
-        <div><b>Şirketle İlişki:</b> ${s.relationship}</div>
-        <div><b>Tebligat Adresi:</b> ${s.address || '-'}</div>
-        <div><b>Talep Edilen Haklar:</b><br>• ${Array.isArray(s.rights) ? s.rights.join('<br>• ') : s.rights}</div>
-        <div><b>Ayrıntılı Açıklama:</b><br>${s.details}</div>
-        <div><b>Yanıt Tercihi:</b> ${s.response_channel} ${s.kep_address ? '(' + s.kep_address + ')' : ''}</div>
-        <div><b>Kalan Yasal Süre:</b> ${calculateDaysLeft(s.created_at)} Gün</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div><b>Başvuru Sahibi:</b> ${escapeHtml(s.full_name)}</div>
+            <div><b>TC / Pasaport / VKN:</b> ${escapeHtml(s.id_number)}</div>
+            <div><b>İletişim Telefonu:</b> ${escapeHtml(s.phone)}</div>
+            <div><b>E-Posta:</b> ${escapeHtml(s.email)}</div>
+            <div><b>Şirketle İlişki:</b> ${escapeHtml(s.relationship)}</div>
+            <div><b>Başvuru Tarihi:</b> ${s.created_at ? new Date(s.created_at).toLocaleString('tr-TR') : '-'}</div>
+        </div>
+        <div style="margin-top:6px;"><b>Tebligat Adresi:</b> ${escapeHtml(s.address || '-')}</div>
+        <div style="margin-top:6px;"><b>Yanıt Tercihi:</b> ${escapeHtml(s.response_channel)} ${kepInfoHtml}</div>
+        <div style="margin-top:6px; background:#eff6ff; padding:10px; border-radius:6px;">
+            <b>30 Günlük Yasal Cevap Sayacı:</b> 
+            <span style="font-weight:700; color:${daysLeft<=5?'#dc2626':'#15803d'}">${daysLeft > 0 ? daysLeft + ' Gün Kaldı' : 'SÜRE DOLDU!'}</span>
+            <small style="color:var(--text-muted); margin-left:8px;">(KVKK Md. 13/2 azami 30 gün)</small>
+        </div>
+        <div style="margin-top:6px;"><b>Talep Edilen Haklar:</b><br>• ${Array.isArray(s.rights) ? s.rights.map(escapeHtml).join('<br>• ') : escapeHtml(s.rights)}</div>
+        <div style="margin-top:6px; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:6px;">
+            <b>Ayrıntılı Açıklama ve Gerekçe:</b><br>${escapeHtml(s.details)}
+        </div>
     `;
     document.getElementById('detailModal').style.display = 'flex';
 }
@@ -285,26 +379,47 @@ function closeModal() {
     document.getElementById('detailModal').style.display = 'none';
 }
 
-function markAsCompleted() {
-    if (activeViewingIndex >= 0) {
-        submissions[activeViewingIndex].status = 'Cevaplandı';
-        localStorage.setItem('kvkk_submissions', JSON.stringify(submissions));
-        closeModal();
-        renderTable(submissions);
-        updateStats();
-    }
+async function saveStatusUpdate() {
+    if (activeViewingIndex < 0) return;
+    const sub = submissions[activeViewingIndex];
+    const newStatus = document.getElementById('modalStatusSelect').value;
+    const resolutionNote = document.getElementById('modalResolutionNote').value.trim();
+
+    sub.status = newStatus;
+    sub.resolution_note = resolutionNote;
+
+    try {
+        await fetch('/api/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tracking_code: sub.tracking_code,
+                status: newStatus,
+                resolution_note: resolutionNote
+            })
+        });
+    } catch (e) {}
+
+    localStorage.setItem('kvkk_submissions', JSON.stringify(submissions));
+    closeModal();
+    renderTable(submissions);
+    updateStats();
 }
 
 function exportCsv() {
-    let csv = "Takip Kodu,Ad Soyad,TCKN,Telefon,Eposta,Iliski,Durum,Tarih\n";
+    let csv = "\uFEFFTakip Kodu,Ad Soyad,TCKN,Telefon,Eposta,Iliski,Cevap Kanali,KEP Adresi,Durum,Cozum Notu,Tarih\n";
     submissions.forEach(s => {
-        csv += `"${s.tracking_code}","${s.full_name}","${s.id_number}","${s.phone}","${s.email}","${s.relationship}","${s.status}","${s.created_at}"\n`;
+        csv += `"${s.tracking_code || ''}","${s.full_name || ''}","${s.id_number || ''}","${s.phone || ''}","${s.email || ''}","${s.relationship || ''}","${s.response_channel || ''}","${s.kep_address || ''}","${s.status || ''}","${(s.resolution_note || '').replace(/"/g, '""')}","${s.created_at || ''}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "kvkk_basvurular.csv";
+    link.download = `kvkk_basvurular_${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
+}
+
+function escapeHtml(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 window.onload = loadSubmissions;

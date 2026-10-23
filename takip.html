@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVKK Başvuru Durum Sorgulama | 6698 Sayılı Kanun Takip Portalı</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-hover: #1d4ed8;
+            --secondary: #0f172a;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #15803d;
+            --warning: #b45309;
+            --danger: #b91c1c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; padding: 32px 16px; min-height: 100vh; }
+        .container { max-width: 680px; margin: 0 auto; }
+
+        .header {
+            text-align: center; margin-bottom: 24px; background: white; padding: 24px;
+            border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .header-badge {
+            display: inline-block; background: #dbeafe; color: var(--primary);
+            font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
+        }
+        .header h1 { font-size: 1.45rem; color: var(--secondary); margin-bottom: 8px; font-weight: 800; }
+        .header p { font-size: 0.88rem; color: var(--text-muted); }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 28px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        label { font-size: 0.83rem; font-weight: 600; color: #334155; }
+        input {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.95rem; color: var(--text-main); background: #f8fafc; outline: none; transition: all 0.2s;
+        }
+        input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
+
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; padding: 14px; border: none;
+            border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        /* Sonuç Kartı */
+        .result-box {
+            display: none; background: white; border: 1px solid var(--border); border-radius: 12px;
+            padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-top: 20px;
+        }
+        .status-header {
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+            padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+        }
+        .tracking-title { font-size: 1.15rem; font-weight: 800; color: var(--secondary); }
+        .badge { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-done { background: #dcfce7; color: #15803d; }
+        .badge-urgent { background: #fee2e2; color: #b91c1c; }
+
+        .info-row { display: flex; margin-bottom: 10px; font-size: 0.88rem; }
+        .info-label { width: 160px; font-weight: 600; color: var(--text-muted); }
+        .info-val { flex: 1; color: var(--text-main); }
+
+        /* 30 Gün Sayacı Çubuğu */
+        .countdown-container {
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
+            padding: 14px; margin: 16px 0;
+        }
+        .progress-bar-bg {
+            background: #e2e8f0; height: 10px; border-radius: 999px; overflow: hidden; margin-top: 8px;
+        }
+        .progress-bar-fill {
+            height: 100%; border-radius: 999px; transition: width 0.4s ease;
+        }
+
+        .alert-error {
+            background: #fee2e2; border: 1px solid #fecaca; color: #991b1b;
+            padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 16px; display: none;
+        }
+
+        .nav-links { display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.85rem; }
+        .nav-links a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-badge">6698 SAYILI KVKK MADDE 11 VE 13</div>
+        <h1>🔍 İlgili Kişi Başvuru Durum Sorgulama</h1>
+        <p>Veri sorumlusuna yapmış olduğunuz KVKK başvurusunun güncel durumunu ve 30 günlük yasal cevap verme süresini takip edebilirsiniz.</p>
+    </div>
+
+    <div class="card">
+        <div class="alert-error" id="errorBox"></div>
+
+        <form id="trackForm" onsubmit="handleTrack(event)">
+            <div class="form-group">
+                <label>Başvuru Takip Kodunuz <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="trackCode" required placeholder="Örn: KVKK-2026-104821" autocomplete="off" style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+                <label>Kimlik Doğrulama (T.C. Kimlik / Pasaport No Son 4 Hanesi) <span style="color:var(--danger)">*</span></label>
+                <input type="password" id="idVerify" required placeholder="Örn: 9481 veya tam TCKN" maxlength="11" autocomplete="off">
+                <small style="color:var(--text-muted); font-size:0.75rem;">Kişisel verilerinizin güvenliği için başvuru sırasında belirttiğiniz kimlik numarasının son 4 hanesini giriniz.</small>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span>🔍 Başvuru Durumunu Sorgula</span>
+            </button>
+        </form>
+
+        <!-- Sonuç Bölümü -->
+        <div class="result-box" id="resultBox">
+            <div class="status-header">
+                <div class="tracking-title" id="resTrackingCode">KVKK-2026-000000</div>
+                <div id="resStatusBadge" class="badge badge-pending">İnceleniyor</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">Başvuru Sahibi:</div>
+                <div class="info-val" id="resMaskedName">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Şirketle İlişki:</div>
+                <div class="info-val" id="resRelationship">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Başvuru Tarihi:</div>
+                <div class="info-val" id="resCreatedAt">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Cevap Kanalı:</div>
+                <div class="info-val" id="resResponseChannel">-</div>
+            </div>
+
+            <!-- 30 Günlük Süre Sayacı -->
+            <div class="countdown-container" id="countdownContainer">
+                <div style="display:flex; justify-content:space-between; font-size:0.83rem; font-weight:700;">
+                    <span id="resDeadlineBadge">⏳ Yasal Yanıt Süresi</span>
+                    <span id="resDeadlineDate" style="color:var(--text-muted)">Son Tarih: 30 Gün</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="resProgressBar" style="width: 20%; background: var(--primary);"></div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">
+                    6698 sayılı Kanun Md. 13/2: Veri sorumlusu talebi en geç otuz (30) gün içinde ücretsiz sonuçlandırır.
+                </div>
+            </div>
+
+            <div id="resolutionBox" style="display:none; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:14px; margin-top:14px;">
+                <div style="font-weight:700; color:#15803d; font-size:0.88rem; margin-bottom:4px;">📋 Veri Sorumlusu Kararı & Bilgilendirme Notu:</div>
+                <div id="resResolutionNote" style="font-size:0.88rem; color:#166534; white-space:pre-wrap;"></div>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="index.html">← Yeni KVKK Başvurusu Yap</a>
+            <a href="admin.html" target="_blank">🛡️ Yönetici Girişi</a>
+        </div>
+    </div>
+</div>
+
+<script>
+async function handleTrack(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const errBox = document.getElementById('errorBox');
+    const resBox = document.getElementById('resultBox');
+    
+    errBox.style.display = 'none';
+    resBox.style.display = 'none';
+
+    const code = document.getElementById('trackCode').value.trim();
+    const idVerify = document.getElementById('idVerify').value.trim();
+
+    if (!code || !idVerify) {
+        errBox.innerText = 'Lütfen takip kodu ve kimlik doğrulama bilgisini giriniz.';
+        errBox.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = '⏳ Sorgulanıyor...';
+
+    try {
+        const res = await fetch('/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tracking_code: code, id_verify: idVerify })
+        });
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+            errBox.innerText = result.error || 'Başvuru bulunamadı veya doğrulama başarısız.';
+            errBox.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = '🔍 Başvuru Durumunu Sorgula';
+            return;
+        }
+
+        renderResult(result.data);
+    } catch (err) {
+        // Fallback for localStorage
+        const localList = JSON.parse(localStorage.getItem('kvkk_submissions') || '[]');
+        const matched = localList.find(s => s.tracking_code && s.tracking_code.toUpperCase() === code.toUpperCase());
+        if (matched) {
+            const cleanTarget = (matched.id_number || '').trim();
+            if (cleanTarget.endsWith(idVerify) || cleanTarget === idVerify) {
+                renderResult({
+                    tracking_code: matched.tracking_code,
+                    masked_name: matched.full_name ? matched.full_name[0] + '***' : '***',
+                    relationship: matched.relationship,
+                    response_channel: matched.response_channel,
+                    status: matched.status || 'İnceleniyor',
+                    resolution_note: matched.resolution_note || '',
+                    created_at: matched.created_at,
+                    deadline: {
+                        days_left: 25,
+                        deadline_date: '30 Gün Sonra',
+                        badge_text: '⏳ 25 Gün Kaldı',
+                        color: '#15803d',
+                        elapsed_days: 5
+                    }
+                });
+            } else {
+                errBox.innerText = 'Kimlik doğrulama bilgisi uyuşmuyor.';
+                errBox.style.display = 'block';
+            }
+        } else {
+            errBox.innerText = 'Başvuru kaydı bulunamadı.';
+            errBox.style.display = 'block';
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '🔍 Başvuru Durumunu Sorgula';
+    }
+}
+
+function renderResult(data) {
+    document.getElementById('resTrackingCode').innerText = data.tracking_code;
+    document.getElementById('resMaskedName').innerText = data.masked_name || '-';
+    document.getElementById('resRelationship').innerText = data.relationship || '-';
+    document.getElementById('resResponseChannel').innerText = data.response_channel || '-';
+    document.getElementById('resCreatedAt').innerText = data.created_at ? new Date(data.created_at).toLocaleDateString('tr-TR') : '-';
+
+    const statusBadge = document.getElementById('resStatusBadge');
+    statusBadge.innerText = data.status || 'İnceleniyor';
+    if (data.status === 'Cevaplandı') {
+        statusBadge.className = 'badge badge-done';
+    } else if (data.deadline && data.deadline.is_urgent) {
+        statusBadge.className = 'badge badge-urgent';
+    } else {
+        statusBadge.className = 'badge badge-pending';
+    }
+
+    if (data.deadline) {
+        document.getElementById('resDeadlineBadge').innerText = data.deadline.badge_text;
+        document.getElementById('resDeadlineBadge').style.color = data.deadline.color;
+        document.getElementById('resDeadlineDate').innerText = `Yasal Son Tarih: ${data.deadline.deadline_date}`;
+        
+        const pct = Math.min(100, Math.max(5, (data.deadline.elapsed_days / 30) * 100));
+        const pBar = document.getElementById('resProgressBar');
+        pBar.style.width = pct + '%';
+        pBar.style.background = data.deadline.color;
+    }
+
+    const resBox = document.getElementById('resolutionBox');
+    if (data.resolution_note) {
+        document.getElementById('resResolutionNote').innerText = data.resolution_note;
+        resBox.style.display = 'block';
+    } else {
+        resBox.style.display = 'none';
+    }
+
+    document.getElementById('resultBox').style.display = 'block';
+}
+
+// URL'de code parametresi varsa otomatik doldur
+window.onload = function() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+        document.getElementById('trackCode').value = code;
+        document.getElementById('idVerify').focus();
+    }
+};
+</script>
+
+</body>
+</html>
