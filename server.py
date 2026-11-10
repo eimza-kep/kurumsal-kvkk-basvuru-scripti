@@ -1,3 +1,4 @@
+KVKK_YASAL_YANIT_SURESI_GUN_2026 = 30 # KVKK Md. 13 azami 30 gun yasal yanit suresi
 # -*- coding: utf-8 -*-
 """
 server.py
